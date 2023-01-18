@@ -20,7 +20,7 @@
 	String edit = request.getParameter("edit");
 %>
 <body>
-	<jsp:include page="../inc/menu.jsp" />
+	<jsp:include page="./menu.jsp" />
 	<div class="jumbotron">
 		<div class="container">
 			<h1 class="display-3">상품 편집</h1>
