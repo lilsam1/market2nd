@@ -16,7 +16,7 @@
 	rs = pstmt.executeQuery();
 	if (rs.next()) {
 		session.setAttribute("sessionId", id);
-		session.setAttribute("sesionName", rs.getString("name"));
+		session.setAttribute("sessionName", rs.getString("name"));
 		
 		CartDAO cartDAO = new CartDAO();
 		cartDAO.updateCartBylogin(session);
