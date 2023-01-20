@@ -20,7 +20,8 @@ public class RippleDAO {
 		return instance;
 	}
 	
-	public void insertRipple(RippleDTO ripple) {
+	public boolean insertRipple(RippleDTO ripple) {
+		int flag = 0;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		
@@ -31,7 +32,7 @@ public class RippleDAO {
 			
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, ripple.getRippleId());
-			pstmt.setString(2, ripple.getBoardname());
+			pstmt.setString(2, ripple.getBoardName());
 			pstmt.setInt(3, ripple.getBoardNum());
 			pstmt.setString(4, ripple.getMemberId());
 			pstmt.setString(5, ripple.getName());
@@ -39,7 +40,8 @@ public class RippleDAO {
 			pstmt.setString(7, ripple.getInsertDate());
 			pstmt.setString(8, ripple.getIp());
 			
-			pstmt.executeUpdate();
+			flag = pstmt.executeUpdate();
+			
 		} catch (Exception ex) {
 			System.out.println("WriteRipple() 작성에러: " + ex);
 		} finally {
@@ -52,6 +54,7 @@ public class RippleDAO {
 				throw new RuntimeException(ex.getMessage());
 			}
 		}
+		return flag != 0;
 	}
 	
 	public ArrayList<RippleDTO> getRippleList(String boardName, int boardNum) {
@@ -72,7 +75,7 @@ public class RippleDAO {
 			while(rs.next()) {
 				RippleDTO ripple = new RippleDTO();
 				ripple.setRippleId(rs.getInt("rippleId"));
-				ripple.setBoardname(rs.getString("boardName"));
+				ripple.setBoardName(rs.getString("boardName"));
 				ripple.setBoardNum(rs.getInt("boardNum"));
 				ripple.setMemberId(rs.getString("memberId"));
 				ripple.setName(rs.getString("name"));
@@ -96,7 +99,8 @@ public class RippleDAO {
 		
 	}
 
-	public void deleteRipple(RippleDTO ripple) {
+	public boolean deleteRipple(RippleDTO ripple) {
+		int flag = 0;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		
@@ -106,7 +110,10 @@ public class RippleDAO {
 			conn  = DBconnection.getConnection();
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, ripple.getRippleId());
-			pstmt.executeUpdate();
+			flag = pstmt.executeUpdate();
+			
+			System.out.println(sql);
+			System.out.println(ripple.getRippleId());
 		} catch (Exception ex) {
 			System.out.println("deleteRipple() 에러 : " + ex);
 		} finally {
@@ -119,5 +126,7 @@ public class RippleDAO {
 				throw new RuntimeException(ex.getMessage());
 			}
 		}
+		return flag != 0;
+		
 	}
 }

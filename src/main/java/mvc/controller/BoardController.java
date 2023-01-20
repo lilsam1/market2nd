@@ -1,6 +1,7 @@
 package mvc.controller;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,12 +88,31 @@ public class BoardController extends HttpServlet {
 			String pageNum = request.getParameter("pageNum");
 			response.sendRedirect("BoardViewAction.do?num=" + num + "&pageNum=" + pageNum);
 		}
-		
 		else if (command.contains("/BoardRippleDeleteAction.do")) {	// 댓글 삭제
 			requestBoardRippleDelete(request);
 			String num = request.getParameter("num");
 			String pageNum = request.getParameter("pageNum");
 			response.sendRedirect("BoardViewAction.do?num=" + num + "&pageNum=" + pageNum);
+		}
+		
+		// ajax로 리플처리
+		else if (command.contains("RippleListAction.do")) {
+			requestRippleList(request, response);
+		}
+		
+		else if (command.contains("RippleWriteAction.do")) {
+			requestRippleWrite(request, response);
+		}
+		
+		else if (command.contains("RippleDeleteAction.do")) {	// 댓글 삭제
+			requestRippleDelete(request, response);
+		}
+		
+		else {
+			System.out.println("out : " + command);
+			// 결과 화면을 출력 스트림을 통해 출력
+			PrintWriter out = response.getWriter();
+			out.append("<html><body><h2>잘못된 경로입니다.(" + command + "</h2><hr>");
 		}
 	}
 	
@@ -220,7 +240,7 @@ public class BoardController extends HttpServlet {
 		request.setCharacterEncoding("utf-8");
 		
 		HttpSession session = request.getSession();
-		ripple.setBoardname(this.boardName);
+		ripple.setBoardName(this.boardName);
 		ripple.setBoardNum(num);
 		ripple.setMemberId((String) session.getAttribute("sessionId"));
 		ripple.setName(request.getParameter("name"));
@@ -250,6 +270,91 @@ public class BoardController extends HttpServlet {
 		RippleDTO ripple = new RippleDTO();
 		ripple.setRippleId(rippleId);
 		dao.deleteRipple(ripple);
+	}
+	
+	
+	public void requestRippleList(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		request.setCharacterEncoding("UTF-8");
+		
+		HttpSession session = request.getSession();
+		String sessionId = (String) session.getAttribute("sessionId");
+		
+		String boardName = request.getParameter("boardName");
+		int num = Integer.parseInt(request.getParameter("num"));
+		
+		RippleDAO dao = RippleDAO.getInstance();
+		ArrayList<RippleDTO> list = dao.getRippleList(boardName, num);
+		
+		StringBuilder result = new StringBuilder("{ \"listData\" :  [");
+		int i = 0;
+		for (RippleDTO dto : list) {
+			boolean flag = sessionId != null && sessionId.equals(dto.getMemberId()) ? true : false;
+			result.append("{\"rippleId\" : \"")
+			.append(dto.getRippleId())
+			.append("\", \"name\" : \"")
+			.append(dto.getName())
+			.append("\", \"content\" : \"")
+			.append(dto.getContent())
+			.append("\", \"isWriter\": \"")
+			.append(flag)
+			.append("\" }");
+			// value가 배열 형태로 들어가서 마지막 요소의 경우에는 콤마가 나오면 안됨
+			
+			if (i++ < list.size() - 1)
+				result.append(", ");
+		}
+		result.append("]}");
+		
+		// 결과 화면을 출력 스트림을 통해 출력
+		PrintWriter out = response.getWriter();
+		out.append(result.toString());
+	}
+	
+	public void requestRippleDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		int rippleId = Integer.parseInt(request.getParameter("rippleId"));
+		RippleDAO dao = RippleDAO.getInstance();
+		RippleDTO ripple = new RippleDTO();
+		ripple.setRippleId(rippleId);
+		
+		String result = "{ \"result\" : ";
+		if (dao.deleteRipple(ripple)) {
+			result += "\"true\"}";
+		}
+		else {
+			result += "\"false\"}";
+		}
+		// 결과 화면을 출력 스트림을 통해 출력
+		PrintWriter out = response.getWriter();
+		out.append(result);
+		
+	}
+	
+	public void requestRippleWrite(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		
+		RippleDAO dao = RippleDAO.getInstance();
+		RippleDTO ripple = new RippleDTO();
+		HttpSession session = request.getSession();
+		
+		request.setCharacterEncoding("utf-8");
+		
+		ripple.setBoardName(request.getParameter("boardName"));
+		ripple.setBoardNum(Integer.parseInt(request.getParameter("num")));
+		ripple.setMemberId((String) session.getAttribute("sessionId"));
+		ripple.setName(request.getParameter("name"));
+		ripple.setContent(request.getParameter("content"));
+		ripple.setIp(request.getRemoteAddr());
+		
+		String result = "{ \"result\" : ";
+		if (dao.insertRipple(ripple)) {
+			result += "\"true\"}";
+		}
+		else {
+			result += "\"false\"}";
+		}
+		// 결과 화면을 출력 스트림을 통해 출력
+		PrintWriter out = response.getWriter();
+		out.append(result);
+		
 	}
 	
 }

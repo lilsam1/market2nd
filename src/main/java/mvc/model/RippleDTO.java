@@ -2,7 +2,7 @@ package mvc.model;
 
 public class RippleDTO {
 	private int rippleId;
-	private String boardname;
+	private String boardName;
 	private int boardNum;
 	private String memberId;
 	private String name;
@@ -16,11 +16,12 @@ public class RippleDTO {
 	public void setRippleId(int rippleId) {
 		this.rippleId = rippleId;
 	}
-	public String getBoardname() {
-		return boardname;
+	
+	public String getBoardName() {
+		return boardName;
 	}
-	public void setBoardname(String boardname) {
-		this.boardname = boardname;
+	public void setBoardName(String boardName) {
+		this.boardName = boardName;
 	}
 	public int getBoardNum() {
 		return boardNum;
