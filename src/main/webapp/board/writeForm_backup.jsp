@@ -30,12 +30,12 @@
 	<jsp:include page="../inc/menu.jsp" />
 	<div class="jumbotron">
 		<div class="container">
-			<h1 class="display-3">갤러리</h1>
+			<h1 class="display-3">게시판</h1>
 		</div>
 	</div>
 	<div class="container">
 		<form name="newWrite" action="./BoardWriteAction.do" class="form-horizontal" method="post"
-		enctype="multipart/form-data" onsubmit="return checkForm()">
+		onsubmit="return checkForm()">
 		<input name="id" type="hidden" class="form-control" value="${sessionId}">
 			<div class="form-group row">
 				<label class="col-sm-2 control-label">성명</label>
@@ -56,12 +56,6 @@
 				<div class="col-sm-8">
 					<textarea name="content" cols="50" rows="5" class="form-control"
 					placeholder="content"></textarea>
-				</div>
-			</div>
-			<div class="form-group row">
-				<label class="col-sm-2 control-label">이미지</label>
-				<div class="col-sm-8">
-					<input type="file" name="productImage" class="form-control">
 				</div>
 			</div>
 			<div class="form-group row">

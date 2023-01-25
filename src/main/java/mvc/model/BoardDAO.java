@@ -159,17 +159,20 @@ public class BoardDAO {
 		try {
 			conn = DBconnection.getConnection();
 			
-			String sql = "insert into board values(?, ?, ?, ?, ?, ?, ?, ?)";
+			String sql = "insert into board values(?, ?, ?, ?, ?, now(), ?, ?, ?, ?)";
 			
+			System.out.println(board);
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, board.getNum());
 			pstmt.setString(2, board.getId());
 			pstmt.setString(3, board.getName());
 			pstmt.setString(4, board.getSubject());
 			pstmt.setString(5, board.getContent());
-			pstmt.setString(6, board.getRegist_day());
-			pstmt.setInt(7, board.getHit());
-			pstmt.setString(8, board.getIp());
+			pstmt.setInt(6, board.getHit());
+			pstmt.setString(7, board.getIp());
+			pstmt.setString(8, board.getFilename());
+			pstmt.setLong(9, board.getFilesize());
+			//pstmt.setInt(10, 0);
 			
 			pstmt.executeUpdate();
 		} catch (Exception ex) {
@@ -243,6 +246,7 @@ public class BoardDAO {
 				board.setRegist_day(rs.getString("regist_day"));
 				board.setHit(rs.getInt("hit"));
 				board.setIp(rs.getString("ip"));
+				board.setFilename(rs.getString("filename"));
 			}
 			
 		} catch (Exception ex) {

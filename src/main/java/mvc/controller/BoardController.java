@@ -1,9 +1,11 @@
 package mvc.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.RequestDispatcher;
@@ -13,6 +15,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import org.apache.commons.fileupload.DiskFileUpload;
+import org.apache.commons.fileupload.FileItem;
 
 import mvc.model.BoardDAO;
 import mvc.model.BoardDTO;
@@ -53,7 +58,12 @@ public class BoardController extends HttpServlet {
 			rd.forward(request, response);
 		}
 		else if (command.contains("/BoardWriteAction.do")) {	
-			requestBoardWrite(request);
+			try {
+				requestBoardWrite(request);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			RequestDispatcher rd = request.getRequestDispatcher("../board/BoardListAction.do");
 			rd.forward(request, response);
 		}
@@ -130,25 +140,85 @@ public class BoardController extends HttpServlet {
 	*/
 	
 	// 
-	public void requestBoardWrite(HttpServletRequest request) {
+	public void requestBoardWrite(HttpServletRequest request) throws Exception {
 		BoardDAO dao = BoardDAO.getInstance();
 		
 		BoardDTO board = new BoardDTO();
-		board.setId(request.getParameter("id"));
-		board.setName(request.getParameter("name"));
-		board.setSubject(request.getParameter("subject"));
-		board.setContent(request.getParameter("content"));
 		
-		// 
-		System.out.println(request.getParameter("name"));
-		System.out.println(request.getParameter("subject"));
-		System.out.println(request.getParameter("content"));
+		HttpSession session = request.getSession();
+		board.setId((String) session.getAttribute("sessionId"));
 		
-		java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat("yyyy/MM/dd(HH:mm:ss)");
-		String regist_day = formatter.format(new java.util.Date());
+		// 폼 페이지에서 전송된 파일을 저장할 서버의 경롤르 작성
+		String path=  "C:/img";
+		
+		// 파일 업로드를 위해 DiskFileUpload 클래스를 생성
+		DiskFileUpload upload = new DiskFileUpload();
+		
+		// 업로드할 파일의 최대 크기, 메모리상에 저장할 최대 크기, 업로드된 파일을 임시로 저장할 경로를 작성
+		upload.setSizeMax(1000000);
+		upload.setSizeThreshold(4096);
+		upload.setRepositoryPath(path);
+		
+		// 폼 페이지에서 전송된 요청 파라미터를 전달받도록 DiskFileUpload 객체 타입의 parseRequest() 메서드를 작성
+		List items = upload.parseRequest(request);
+		
+		// 폼 페이지에서 전송된 요청 파라미터를 Iterator 클래스로 변환
+		Iterator params = items.iterator();
+		
+		while (params.hasNext()) {	// 폼 페이지에서 전송된 요청 파라미터가 없을 때까지 반복하도록 Iterator 객체 타입의 hasNext() 메서드를 작성
+			// 폼 페이지에서 전송된 요청 파라미터의 이름을 가져오도록 Iterator 객체 타입의 next() 메서드를 작성
+			FileItem item = (FileItem) params.next();
+			
+			if (item.isFormField()) {
+				// 폼 페이지에서 전송된 요청 파라미터가 일반 데이터이면 요청 파라미터의 이름과 값을 출력
+				String name = item.getFieldName();
+				String value = item.getString("utf-8");
+				
+				switch (name) {
+					case "name":
+						board.setName(value);
+						break;
+					case "subject":
+						board.setSubject(value);
+						break;
+					case "content":
+						board.setContent(value);
+						break;
+				}
+				System.out.println(name + "=" + value + "<br>");
+			}
+			else {
+				// 폼 페이지에서 전송된 요청 파라미터가 파일이면
+				// 요청 파라미터의 이름, 저장 파일의 이름, 파일 컨텐츠 유형, 파일 크기에 대한 정보를 출력
+				String fileFieldName = item.getFieldName();
+				String fileName = item.getName();
+				String contentType = item.getContentType();
+				
+				if (!fileName.isEmpty()) {
+					System.out.println("파일이름 : " + fileName);
+					fileName = fileName.substring(fileName.lastIndexOf("\\") + 1);
+					long fileSize = item.getSize();
+					
+					File file = new File(path + "/" + fileName);
+					item.write(file);
+					
+					board.setFilename(fileName);
+					board.setFilesize(fileSize);
+					
+					System.out.println("----------------------------<br>");
+					System.out.println("요청 파라미터 이름 : " + fileFieldName + "<br>");
+					System.out.println("저장 파일 이름 : " + fileName + "<br>");
+					System.out.println("파일 콘텐츠 타입 : " + contentType + "<br>");
+					System.out.println("파일 크기 : " + fileSize);
+				}
+			}
+		}
+
+		//java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat("yyyy/MM/dd(HH:mm:ss)");
+		//String regist_day = formatter.format(new java.util.Date());
 		
 		board.setHit(0);
-		board.setRegist_day(regist_day);
+		//board.setRegist_day(regist_day);
 		board.setIp(request.getRemoteAddr());
 		
 		dao.insertBoard(board);	
