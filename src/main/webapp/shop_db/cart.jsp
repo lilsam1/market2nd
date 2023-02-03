@@ -28,7 +28,7 @@
 					<td alingn="left">
 					<span class="btn btn-danger" onclick="deleteCart();">전체 삭제하기</span>
 					<span class="btn btn-danger" onclick="deleteCartSel();">선택 삭제하기</span></td>
-					<td align="right"><a href="./shippingInfo.jsp?cartId=<%= cartId%>" class="btn btn-success">주문하기</a></td>
+					<td align="right"><a href="../order/form.do" class="btn btn-success">주문하기</a></td>
 				</tr>
 			</table>
 		</div>
