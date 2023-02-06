@@ -4,6 +4,7 @@
 <%
 	String sessionId = (String) session.getAttribute("sessionId");
 %>
+<link rel="stylesheet" href="../resources/css/bootstrap.min.css" />
 <nav class="navbar navbar-expand navbar-dark bg-dark">
 	<div class="container">
 		<div class="navbar-header">

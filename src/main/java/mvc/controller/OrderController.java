@@ -14,6 +14,7 @@ import market.dao.CartDAO;
 import market.dto.Cart;
 import mvc.model.OrderDAO;
 import mvc.model.OrderDataDTO;
+import mvc.model.OrderInfoDTO;
 
 @WebServlet("/order/*")
 public class OrderController extends HttpServlet {
@@ -36,12 +37,38 @@ public class OrderController extends HttpServlet {
 		
 		System.out.println("command : " + command);
 		
-		if (command.contains("form.jsp")) { // 주문서 / 배송정보 입력 페이지
+		if (command.contains("form.do")) { // 주문서 / 배송정보 입력 페이지
 			setOrderData(req);
 			// 상단에 장바구니 출력
-//			ArrayList<OrderDataDTO> datas = getOrderData(getOrderNo(req));
-//			req.setAttribute("datas", datas);
-//			req.getRequestDispatcher("/WEB-INF/order/form.jsp").forward(req, resp);
+			
+			// 상단에 출력할 장바구니 
+			ArrayList<OrderDataDTO> datas = getOrderData(getOrderNo(req));
+			req.setAttribute("datas", datas);
+			
+			// 장바구니 합계 금액
+			int totalPrice = getTotalPrice(getOrderNo(req));
+			req.setAttribute("totalPrice", totalPrice);
+			
+			req.getRequestDispatcher("/WEB-INF/order/form.jsp").forward(req, resp);
+		}
+		
+		else if (command.contains("pay.do")) {	// 주문서 정보 저장 및 결제 수단 출력
+			setOrderInfo(req);	// 주문정보 저장
+			
+			// 장바구니 합계 금액
+			int totalPrice = getTotalPrice(getOrderNo(req));
+			req.setAttribute("totalPrice", totalPrice);
+			
+			// 주문서 정보 가져옴
+			OrderInfoDTO info = getOrderInfo(getOrderNo(req));
+			req.setAttribute("info", info);
+			
+			// 주문상품 정보 가져오기 (ex: iPhone 6S 외 1건)
+			String orderProductName = getOrderProductName(getOrderNo(req));
+			req.setAttribute("orderProductName", orderProductName);
+			
+			req.getRequestDispatcher("/WEB-INF/order/pay.jsp").forward(req, resp);
+			
 		}
 	}
 
@@ -54,6 +81,12 @@ public class OrderController extends HttpServlet {
 		
 		HttpSession session = req.getSession();	// 세션 사용을 위해 생성
 		return session.getId();
+	}
+	
+	private ArrayList<OrderDataDTO> getOrderData(String orderNo) {
+		OrderDAO dao = OrderDAO.getInstance();
+		ArrayList<OrderDataDTO> dtos = dao.selectAllOrderData(orderNo);
+		return dtos;
 	}
 
 	private void setOrderData(HttpServletRequest req) {
@@ -101,4 +134,46 @@ public class OrderController extends HttpServlet {
 		return datas;
 	}
 	
+	private int getTotalPrice(String orderNo) {
+		OrderDAO dao = OrderDAO.getInstance();
+		return dao.getTotalPrice(orderNo);
+	}
+	
+	private void setOrderInfo(HttpServletRequest request) {
+		OrderDAO dao = OrderDAO.getInstance();
+		
+		// 1. 중복을 막기 위해 주문번호로 저장된 데이터 삭제
+		dao.clearOrderInfo(getOrderNo(request));
+		
+		// 2. request온 값을 dto에 저장해서 dao에 전달
+		OrderInfoDTO orderInfoDTO = new OrderInfoDTO();
+		
+		orderInfoDTO.setOrderNo(getOrderNo(request));
+		orderInfoDTO.setMemberId(getMemberId(request));
+		orderInfoDTO.setOrderName(request.getParameter("orderName"));
+		orderInfoDTO.setOrderTel(request.getParameter("orderTel"));
+		orderInfoDTO.setOrderEmail(request.getParameter("orderEmail"));
+		orderInfoDTO.setReceiveName(request.getParameter("receiveName"));
+		orderInfoDTO.setReceiveTel(request.getParameter("receiveTel"));
+		orderInfoDTO.setReceiveAddress(request.getParameter("receiveAddress"));
+		orderInfoDTO.setPayAmount(getTotalPrice(getOrderNo(request)));
+		
+		dao.insertOrderInfo(orderInfoDTO);
+	}
+	
+	private String getMemberId(HttpServletRequest request) {
+		// 세션에 저장된 아이디 가져옴
+		HttpSession session = request.getSession();
+		return (String) session.getAttribute("sessionId");
+	}
+	
+	private String getOrderProductName(String orderNo) {
+		OrderDAO dao = OrderDAO.getInstance();
+		return dao.getOrderProductName(orderNo);
+	}
+	
+	private OrderInfoDTO  getOrderInfo(String orderNo) {
+		OrderDAO dao = OrderDAO.getInstance();
+		return dao.getOrderInfo(orderNo);
+	}
 }

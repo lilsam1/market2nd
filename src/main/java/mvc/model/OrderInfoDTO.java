@@ -9,6 +9,7 @@ public class OrderInfoDTO {
 	private String receiveName;
 	private String receiveTel;
 	private String receiveAddress;
+	private int payAmount;
 	private String payMethod;
 	private String carryNo;
 	private String orderStep;
@@ -64,6 +65,12 @@ public class OrderInfoDTO {
 	}
 	public void setReceiveAddress(String receiveAddress) {
 		this.receiveAddress = receiveAddress;
+	}
+	public int getPayAmount() {
+		return payAmount;
+	}
+	public void setPayAmount(int payAmount) {
+		this.payAmount = payAmount;
 	}
 	public String getPayMethod() {
 		return payMethod;
